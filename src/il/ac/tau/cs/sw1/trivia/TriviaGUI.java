@@ -1,14 +1,20 @@
 package il.ac.tau.cs.sw1.trivia;
 
-import java.io.FileNotFoundException;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Point;
@@ -24,6 +30,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 public class TriviaGUI {
+	
 
 	private static final int MAX_ERRORS = 3;
 	private Shell shell;
@@ -39,6 +46,57 @@ public class TriviaGUI {
 	private List<Button> answerButtons = new LinkedList<>();
 	private Button passButton;
 	private Button fiftyFiftyButton;
+	private int score;
+	private int mis;
+	private int index;
+	private boolean finished;
+	private Question curr;
+	private Iterator <Question> qs;
+	private int count5050;
+	private int countpass;
+	
+	private final String WA="Wrong...";
+	private final String RA="Correct";
+	private final String GAMEOVER="GAME OVER";
+	
+	//my adds
+	private List<Question> questions;
+	public class Question{
+		private String q;
+		private String rA;
+		private List<String> wA= new ArrayList<String>();
+		private Set<String> ans = new HashSet<String>();
+		public Question(String[] q) {
+			this.q=q[0];
+			this.rA=q[1];
+			this.wA.add(q[1]);
+			this.wA.add(q[2]);
+			this.wA.add(q[3]);
+			this.wA.add(q[4]);
+			ans.addAll(wA);
+			Collections.shuffle(wA);
+		}
+		public String toString() {
+			return q+":"+rA+","+wA.toString();
+		}
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				 return true;}
+				 if (obj == null) {
+				 return false;}
+				 if (getClass() != obj.getClass()) {
+				 return false;}
+				 Question other = (Question) obj;
+				 if (this.q!=other.q) {
+				     return false;
+				     
+				 }
+				 if(!(other.wA.equals(this.wA))) {
+			    	 return false;
+			     }
+				 return true;
+		}
+	}
 
 	public void open() {
 		createShell();
@@ -88,10 +146,68 @@ public class TriviaGUI {
 		// "Browse" button
 		final Button browseButton = new Button(fileSelection, SWT.PUSH);
 		browseButton.setText("Browse");
+		browseButton.addSelectionListener(new SelectionListener() {
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				String path =GUIUtils.getFilePathFromFileDialog(shell);
+				if(path!=null) {
+				filePathField.setText(path);
+			}
+			
+			}});
 
 		// "Play!" button
 		final Button playButton = new Button(fileSelection, SWT.PUSH);
 		playButton.setText("Play!");
+		playButton.addSelectionListener(new SelectionListener() {
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				String fileName=filePathField.getText();
+				File fromFile=new File(fileName);
+				questions=new LinkedList<Question>();
+				try {
+					@SuppressWarnings("resource")
+					BufferedReader bufferedReader = new BufferedReader(new FileReader(fromFile));
+					String word=null;
+					while ((word=bufferedReader.readLine())!=null) {
+						String [] words=word.split("	");
+						questions.add(new Question(words));
+						
+					}
+					count5050=0;
+					countpass=0;
+					Collections.shuffle(questions);
+					score=0;
+					mis=0;
+					index=0;
+					qs=questions.iterator();
+					curr=qs.next();
+					updateQuestionPanel( curr.q,curr.wA);
+					scoreLabel.setText("0");
+					finished=false;
+					
+				} catch (IOException e) {
+					GUIUtils.showErrorDialog(shell,"An Error Accured");
+				}
+				
+				
+			}
+			
+		});
 	}
 
 	/**
@@ -159,7 +275,50 @@ public class TriviaGUI {
 			GridData answerLayoutData = GUIUtils.createFillGridData(1);
 			answerLayoutData.verticalAlignment = SWT.FILL;
 			answerButton.setLayoutData(answerLayoutData);
-			
+			answerButton.addSelectionListener(new SelectionListener() {
+				boolean right=curr.rA==answerButton.getText();
+
+				@Override
+				public void widgetDefaultSelected(SelectionEvent arg0) {
+					// TODO Auto-generated method stub
+					
+				}
+
+				@Override
+				public void widgetSelected(SelectionEvent arg0) {
+					if(!finished) {
+						
+					if(right) {
+						score+=3;
+						mis=0;
+						lastAnswer=RA;
+					}
+					else {
+						mis+=1;
+						lastAnswer=WA;
+						score-=2;
+						if(mis==MAX_ERRORS) {
+							finished=true;
+						}
+					}
+					index+=1;
+					if(!qs.hasNext()) {
+						finished=true;
+					}
+					scoreLabel.setText(Integer.toString(score));
+					if(!finished) {
+					curr=qs.next();
+					updateQuestionPanel(curr.q, curr.wA);
+					}
+					else {
+						GUIUtils.showInfoDialog(shell, GAMEOVER, "Your final score is "+score+" after "+(index)+" questions.");
+					}
+					}
+
+					
+				}
+				
+			});
 			answerButtons.add(answerButton);
 		}
 
@@ -170,10 +329,87 @@ public class TriviaGUI {
 				false);
 		data.horizontalSpan = 1;
 		passButton.setLayoutData(data);
+		passButton.addSelectionListener(new SelectionListener() {
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				if(!finished) {
+					score--;
+					countpass++;
+
+					scoreLabel.setText(Integer.toString(score));
+					if(qs.hasNext()) {
+						curr=qs.next();
+						updateQuestionPanel(curr.q, curr.wA);
+					}
+					if(!qs.hasNext()) {
+						GUIUtils.showInfoDialog(shell, GAMEOVER, "Your final score is "+score+" after "+(index)+" questions.");
+					}
+				}
+				
+			}
+			
+		});
 		
 		// create the "50-50" button to show fewer answer options
 		fiftyFiftyButton = new Button(questionPanel, SWT.PUSH);
+		
+		if(countpass!=0&&score<=0) {
+			passButton.setEnabled(false);
+		}
+		else {
+			passButton.setEnabled(true);
+		}
+		if(count5050!=0&&score<=0) {
+			fiftyFiftyButton.setEnabled(false);
+		}
+		else {
+			fiftyFiftyButton.setEnabled(true);
+		}
 		fiftyFiftyButton.setText("50-50");
+		fiftyFiftyButton.addSelectionListener(new SelectionListener() {
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				if(!finished) {
+						count5050++;
+						score-=1;
+						int disabled=0;
+						Collections.shuffle(answerButtons);
+						for(int j=0; j<4&&disabled<2;j++) {
+							Button b=answerButtons.get(j);
+								if(b.getText()==curr.rA) {
+									continue;
+
+						       	}
+								else {
+									b.setEnabled(false);
+									disabled++;
+								}
+							fiftyFiftyButton.setEnabled(false);
+							
+						}
+						
+					}
+					scoreLabel.setText(Integer.toString(score));
+					
+				}
+				
+			
+			
+		});
 		data = new GridData(GridData.BEGINNING, GridData.CENTER, true,
 				false);
 		data.horizontalSpan = 1;
