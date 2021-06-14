@@ -13,20 +13,29 @@ public class A implements Comparable<A> {
 
 	@Override
 	public int hashCode() {
-		//Put your code here
-		return 0;
+		final int prime = 31;
+		 int result = 1;
+		 result = prime * result + i;
+		 return result;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		//Put your code here
-		return true;
+		if (this == obj) {
+			 return true;}
+			 if (obj == null) {
+			 return false;}
+			 if (getClass() != obj.getClass()) {
+			 return false;}
+			 A other = (A) obj;
+			 if (this.i != other.i) {
+			 return false;}
+			 return true;
 	}
 
 	@Override
 	public int compareTo(A o) {
-		//Put your code here
-		return 0;
+		return o.j-this.j;
 	}
 	
 	

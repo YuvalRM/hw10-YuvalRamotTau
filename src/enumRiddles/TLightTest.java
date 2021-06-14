@@ -2,20 +2,24 @@ package enumRiddles;
 
 enum TLight {
 	   // Each instance provides its implementation to abstract method
-	   RED(30),
-	   AMBER(10),
-	   GREEN(30);
+	   RED(30,"GREEN"),
+	   AMBER(10,"RED"),
+	   GREEN(30,"AMBER");
 	 
 	   
 	   private final int seconds;     // Private variable
-	 
-	   TLight(int seconds) {          // Constructor
+	   private final String next;
+	   TLight(int seconds, String next) {          // Constructor
 	      this.seconds = seconds;
+	      this.next=next;
 	   }
 	 
 	   int getSeconds() {             // Getter
 	      return seconds;
-	   }  
+	   }
+	   String next() {
+		   return next;
+	   }
 	}
 	   
 	public class TLightTest {

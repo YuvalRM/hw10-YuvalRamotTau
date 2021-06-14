@@ -12,8 +12,7 @@ public class C extends B {
 
 	@Override
 	public int compareTo(A other) {
-		//Put your code here
-		return 0;
+		return this.j-other.j;
 	}
 
 

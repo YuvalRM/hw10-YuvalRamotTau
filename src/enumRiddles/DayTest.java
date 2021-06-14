@@ -1,18 +1,23 @@
 package enumRiddles;
 
 enum Day {
-	   MONDAY,
-	   TUESDAY,
-	   WEDNESDAY,
-	   THURSDAY,
-	   FRIDAY,
-	   SATURDAY,
-	   SUNDAY;
-	 
-	   public Day next(){return MONDAY;}
+	   MONDAY(1,"TUESDAY"),
+	   TUESDAY(2,"WEDNESDAY"),
+	   WEDNESDAY(3,"THURSDAY"),
+	   THURSDAY(4,"FRIDAY"),
+	   FRIDAY(5,"SATURDAY"),
+	   SATURDAY(6,"SUNDAY"),
+	   SUNDAY(7,"MONDAY");
+	   private final int num;     // Private variable
+	   private final String next;
+	   Day(int num,String next){
+		   this.num=num;
+		   this.next=next;
+	   }
+	   public String next(){return next;}
 	 
 	   int getDayNumber() {
-	      return 1;
+	      return num;
 	   }
 	}
 	   
