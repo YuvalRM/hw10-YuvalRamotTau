@@ -195,13 +195,19 @@ public class TriviaGUI {
 					mis=0;
 					index=0;
 					qs=questions.iterator();
+					if(qs.hasNext()) {
 					curr=qs.next();
 					updateQuestionPanel( curr.q,curr.wA);
 					scoreLabel.setText("0");
 					finished=false;
+					}
+					else {
+						finished =true;
+						GUIUtils.showInfoDialog(shell, GAMEOVER, "Your final score is "+score+" after "+(index)+" questions.");
+					}
 					
 				} catch (IOException e) {
-					GUIUtils.showErrorDialog(shell,"An Error Accured");
+					
 				}
 				
 				
@@ -340,7 +346,8 @@ public class TriviaGUI {
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
 				if(!finished) {
-					score--;
+					if(countpass!=0) {
+					score--;}
 					countpass++;
 
 					scoreLabel.setText(Integer.toString(score));
@@ -385,7 +392,8 @@ public class TriviaGUI {
 			public void widgetSelected(SelectionEvent arg0) {
 				if(!finished) {
 						count5050++;
-						score-=1;
+						if(count5050!=0) {
+						score-=1;}
 						int disabled=0;
 						Collections.shuffle(answerButtons);
 						for(int j=0; j<4&&disabled<2;j++) {
